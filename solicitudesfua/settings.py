@@ -73,8 +73,10 @@ INSTALLED_APPS = [
     'softwareids',
     "azure_auth",
 ]
-
-AUTHENTICATION_BACKENDS = ("azure_auth.backends.AzureBackend",)
+AUTHENTICATION_BACKENDS = (
+    'azure_auth.backends.AzureBackend',  # Backend de autenticación de Azure
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

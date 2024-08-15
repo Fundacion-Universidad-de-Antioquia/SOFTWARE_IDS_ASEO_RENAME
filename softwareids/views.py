@@ -17,6 +17,7 @@ from django.http import HttpResponse
 logger = logging.getLogger(__name__)
 
 #
+@login_required(login_url='/azure_auth/login')
 def index(request):
     correo = request.user.email  # Correo obtenido del login de Microsoft
     request.session['correo'] = correo
@@ -27,7 +28,7 @@ def index(request):
         }
     return render(request, 'home.html', context)
 
-@login_required
+@login_required(login_url='/azure_auth/login')
 def home(request):
     correo = request.session.get('correo')
     personas = fetch_personas_from_odoo_usuarios(correo)
@@ -60,14 +61,14 @@ def home(request):
 
     return render(request, 'menuppal.html', { 'campo_form': campo_form, 'personas': personas, 'zonas': zonas, 'correo': correo })
 
-@login_required
+@login_required(login_url='/azure_auth/login')
 def novedad_view(request):
     
     correo = request.session.get('correo')  # Obtener el correo de la sesión 
     tipos_novedad = NovedadBase._meta.get_field('tipo_novedad').choices
     return render(request, 'form.html', {'tipos_novedad': tipos_novedad,'correo': correo})
 
-@login_required
+@login_required(login_url='/azure_auth/login')
 def cargar_formulario_novedad(request, tipo_novedad):
     
     # Obtener la fecha y justificación de la sesión
@@ -217,7 +218,7 @@ def obtener_fecha_ingreso(request):
 
 
 
-@login_required
+@login_required(login_url='/azure_auth/login')
 def calcular_cantidad_horas(request):
     hora_inicio = request.GET.get('hora_inicio')
     hora_fin = request.GET.get('hora_fin')
@@ -232,7 +233,8 @@ def calcular_cantidad_horas(request):
         except ValueError:
             return JsonResponse({'error': 'Formato de hora inválido'}, status=400)
     return JsonResponse({'cantidad_horas': 0})
-@login_required
+
+@login_required(login_url='/azure_auth/login')
 def calcular_cantidad_dias(request):
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
