@@ -9,8 +9,8 @@ from softwareids.utils import obtener_personas_ajax, zonas_json_view
 
 urlpatterns = [
     #path('admin/', admin.site.urls),
-    #path('', index, name='index'),
-    path('', TemplateView.as_view(template_name="prueba.html"), name='incio'),
+    path('', index, name='index'),
+    #path('', TemplateView.as_view(template_name="prueba.html"), name='incio'),
     path('azure_auth/config/', admin.site.urls),
     path('logout/', TemplateView.as_view(template_name="home.html")),
     path("azure_auth/", include("azure_auth.urls"),),
