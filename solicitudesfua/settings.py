@@ -155,6 +155,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Configuraciones de seguridad para producción
+SECURE_SSL_REDIRECT = True  # Redirige todas las solicitudes HTTP a HTTPS
+
+# Asegura las cookies
+SESSION_COOKIE_SECURE = True  # Solo enviar cookies de sesión a través de HTTPS
+CSRF_COOKIE_SECURE = True     # Solo enviar la cookie CSRF a través de HTTPS
+SECURE_HSTS_SECONDS = 31536000  # Configura HSTS para forzar HTTPS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Aplica HSTS a todos los subdominios
+SECURE_HSTS_PRELOAD = True  # Permite que los navegadores incluyan tu sitio en la lista de precarga de HSTS
+SECURE_REFERRER_POLICY = 'strict-origin'  # Limita la información que se envía en el encabezado Referer
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'templates/static/')
