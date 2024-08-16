@@ -37,7 +37,7 @@ WSGI_APPLICATION = 'solicitudesfua.wsgi.application'
 USE_TZ = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 #DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['https://app-softwareids-prod-002-gaegafduh6d5akd5.eastus-01.azurewebsites.net/', 'http://localhost:8000/']
 # Lista de IDs de grupos permitidos
@@ -60,7 +60,7 @@ AZURE_AUTH = {
 }
 
 LOGIN_URL = "/azure_auth/login"
-LOGIN_REDIRECT_URL = "home/"    # Or any other endpoint
+LOGIN_REDIRECT_URL = "/home/"    # Or any other endpoint
 
 # Application definition
 INSTALLED_APPS = [
@@ -163,15 +163,14 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
+        'console': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'debug.log'),
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
