@@ -37,9 +37,9 @@ WSGI_APPLICATION = 'solicitudesfua.wsgi.application'
 USE_TZ = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 #DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['https://app-softwareids-prod-002-gaegafduh6d5akd5.eastus-01.azurewebsites.net/', 'http://localhost:8000/']
 # Lista de IDs de grupos permitidos
 ALLOWED_GROUPS = [
     "425ddb39-836e-47d6-98cd-0a4015d1563e",
@@ -82,10 +82,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #'softwareids.middleware.EnsureAccessTokenMiddleware',  # Colocado después de SessionMiddleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # "azure_auth.middleware.AzureMiddleware",
+    "azure_auth.middleware.AzureMiddleware",
 ]
 
 
