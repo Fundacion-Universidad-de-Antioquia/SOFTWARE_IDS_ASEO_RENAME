@@ -35,6 +35,8 @@ USE_I18N = True
 WSGI_APPLICATION = 'solicitudesfua.wsgi.application'
 
 USE_TZ = False
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # o el backend que estés utilizando
+SESSION_COOKIE_SECURE = True  # Asegúrate de esto si estás en HTTPS
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -65,7 +67,7 @@ AZURE_AUTH = {
 }
 
 LOGIN_URL = "/azure_auth/login"
-LOGIN_REDIRECT_URL = "/home/"    # Or any other endpoint
+LOGIN_REDIRECT_URL = "/azure_auth/home/"    # Or any other endpoint
 
 # Application definition
 INSTALLED_APPS = [
