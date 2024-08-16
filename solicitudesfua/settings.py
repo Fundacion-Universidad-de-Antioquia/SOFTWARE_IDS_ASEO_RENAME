@@ -156,7 +156,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Configuraciones de seguridad para producción
-SECURE_SSL_REDIRECT = True  # Redirige todas las solicitudes HTTP a HTTPS
+SECURE_SSL_REDIRECT = False  # Desactiva redirección de Django
+  # Redirige todas las solicitudes HTTP a HTTPS
 
 # Asegura las cookies
 SESSION_COOKIE_SECURE = True  # Solo enviar cookies de sesión a través de HTTPS
