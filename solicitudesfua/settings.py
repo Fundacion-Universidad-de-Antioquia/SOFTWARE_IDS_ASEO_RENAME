@@ -37,6 +37,9 @@ WSGI_APPLICATION = 'solicitudesfua.wsgi.application'
 USE_TZ = False
 SESSION_ENGINE = "django.contrib.sessions.backends.db"  # o el backend que estés utilizando
 SESSION_COOKIE_SECURE = True  # Asegúrate de esto si estás en HTTPS
+CSRF_TRUSTED_ORIGINS = [
+    'https://app-softwareids-prod-002-gaegafduh6d5akd5.eastus-01.azurewebsites.net'
+]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -177,6 +180,11 @@ LOGGING = {
     },
     'loggers': {
         'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'azure_auth': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
