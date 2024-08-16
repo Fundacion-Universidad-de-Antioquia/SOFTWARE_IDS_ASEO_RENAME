@@ -39,7 +39,12 @@ USE_TZ = False
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 #DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['https://app-softwareids-prod-002-gaegafduh6d5akd5.eastus-01.azurewebsites.net/', 'http://localhost:8000/']
+ALLOWED_HOSTS = [
+    'app-softwareids-prod-002-gaegafduh6d5akd5.eastus-01.azurewebsites.net',
+    'localhost',
+    '127.0.0.1'
+]
+
 # Lista de IDs de grupos permitidos
 ALLOWED_GROUPS = [
     "425ddb39-836e-47d6-98cd-0a4015d1563e",
