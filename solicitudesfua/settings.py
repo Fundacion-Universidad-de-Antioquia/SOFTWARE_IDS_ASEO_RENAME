@@ -40,7 +40,7 @@ USE_TZ = False
 DEBUG = True
 #DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
-    'app-softwareids-prod-002-gaegafduh6d5akd5.eastus-01.azurewebsites.net',
+    '.azurewebsites.net',
     'localhost',
     '127.0.0.1'
 ]
