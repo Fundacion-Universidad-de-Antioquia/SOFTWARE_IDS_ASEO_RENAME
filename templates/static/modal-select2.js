@@ -207,8 +207,6 @@ $(document).ready(function() {
                     // Solo busca la fecha de ingreso si el tipo de novedad es 'opcion8' y personaId está definido
                     if (tipoNovedad === 'opcion8' && personaId) {
                         buscarFechaIngreso(personaId);
-                    } else {
-                        console.log('La búsqueda de la fecha de ingreso solo se realiza cuando tipoNovedad es "opcion8".');
                     }
                 });
 
@@ -264,7 +262,17 @@ $(document).ready(function() {
 
                     // Verificación de incapacidad antes de agregar
                     if (verificarIncapacidadAsignada(personaCedula, fechaNovedad)) {
-                        alert('No se puede asignar otra novedad a este empleado');
+                        // Utiliza SweetAlert2 para mostrar una alerta estilizada
+                        Swal.fire({
+                            title: 'Advertencia',
+                            text: 'No se puede asignar otra novedad a este empleado.',
+                            icon: 'warning',
+                            confirmButtonText: 'Aceptar',
+                            customClass: {
+                                confirmButton: 'btn-confirm', // Clase personalizada para el botón de confirmación
+                            },
+                            buttonsStyling: false // Necesario para aplicar las clases personalizadas
+                        });
                         return; // Salir de la función para evitar que se ejecute el resto del código
                     }
 
