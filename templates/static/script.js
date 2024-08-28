@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Redireccionar al hacer clic en el botón de iniciar sesión
   document.getElementById('loginButton').addEventListener('click', function() {
-      window.location.href = 'http://localhost:8000/azure_auth/login';
+      window.location.href = 'https://app-softwareids-prod-002-gaegafduh6d5akd5.eastus-01.azurewebsites.net/azure_auth/login';
   });
 
   document.querySelector('.btn-close').addEventListener('click', function() {
