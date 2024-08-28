@@ -46,7 +46,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '.azurewebsites.net',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    
 ]
 
 # Lista de IDs de grupos permitidos
@@ -71,6 +72,10 @@ AZURE_AUTH = {
        # "425ddb39-836e-47d6-98cd-0a4015d1563e": "Gestion Tecnologica e innovacion"
     }  # Optional, will add user to django group if user is in EntraID group
 }
+
+SESSION_COOKIE_SECURE = True  # Solo si usas HTTPS
+CSRF_COOKIE_SECURE = True     # Solo si usas HTTPS
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # Otras opciones podrían ser 'db', 'cache', etc.
 
 LOGIN_URL = "/azure_auth/login"
 LOGIN_REDIRECT_URL = "/azure_auth/home/"    # Or any other endpoint
