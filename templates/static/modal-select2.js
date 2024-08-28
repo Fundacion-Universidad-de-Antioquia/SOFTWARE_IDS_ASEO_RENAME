@@ -4,6 +4,23 @@ $(document).ready(function() {
     const zona = params.get('zona');
     const departamento = params.get('departamento');
     const correo = $('#userEmail').val() || sessionStorage.getItem('correo') || '';
+    // Verificar si existe una fecha en sessionStorage
+    var fecha = sessionStorage.getItem('fecha') || '';
+    
+    // Si no hay fecha, redirigir a la vista de home
+    if (!fecha) {
+        $('#redirectModal').show();
+        // Redirigir después de un pequeño retraso
+        setTimeout(function() {
+            window.location.href = '/azure_auth/home/';
+        }, 1000); // 1000 ms = 1 segundo; ajusta el tiempo si es necesario
+    }
+    // Recuperar la justificación de sessionStorage si existe
+
+    var justificacion = sessionStorage.getItem('justificacion') || '';
+    if (justificacion) {
+        $('#justificacion-textarea').val(justificacion);  // Establecer el valor en el campo textarea
+    }
     // Inicializar Select2 en los campos existentes
     $('#id_Persona').select2({
         width: '100%',
@@ -25,7 +42,16 @@ $(document).ready(function() {
         'Supervisores / LV': ['opcion16', 'opcion19', 'opcion20'],
         'Supervisores / RYT': []
     };
-   
+    // Funciones para mostrar y ocultar el modal de redirección
+    function mostrarRedirectModal() {
+        $('#redirectModal').show(); // Mostrar el modal
+        $('body').css('overflow', 'hidden'); // Deshabilitar el scroll de la página principal
+    }
+
+    function ocultarRedirectModal() {
+        $('#redirectModal').hide(); // Ocultar el modal
+        $('body').css('overflow', 'auto'); // Habilitar el scroll de la página principal
+    }
 
     function actualizarTiposNovedades(departamento) {
         var tipoNovedadSelect = $('#tipoNovedadSelect');
@@ -76,7 +102,7 @@ $(document).ready(function() {
             $('#agregarNovedadBtn').prop('disabled', true);
         }
     });
-
+    
     $('#agregarNovedadBtn').click(function() {
         var tipoNovedad = $('#tipoNovedadSelect').val();
         if (tipoNovedad) {
@@ -85,6 +111,7 @@ $(document).ready(function() {
             alert('Por favor, seleccione un tipo de novedad.');
         }
     });
+    
 
     function buscarFechaIngreso(personaId) {
         $.ajax({
@@ -115,6 +142,26 @@ $(document).ready(function() {
             $('#guardarBtn').prop('disabled', true);
         }
     }
+    // Función para verificar si ya existe una novedad de "Incapacidad" para la misma persona y fecha
+    function verificarIncapacidadAsignada(cedula, fecha) {
+        var registros = JSON.parse(localStorage.getItem('registros')) || [];
+        var tieneIncapacidad = false;
+    
+        // Definir un array de opciones que deben ser verificadas
+        var opcionesIncapacidad = ['opcion1', 'opcion7', 'opcion9', 'opcion10', 'opcion11', 'opcion18', 'opcion21', 'opcion22'];
+    
+        registros.forEach(function(novedad) {
+            // Verificar si el tipo de novedad está en el array de opciones y si la cédula y la fecha coinciden
+            if (opcionesIncapacidad.includes(novedad.tipoNovedad) && novedad.cedula === cedula && novedad.fecha === fecha) {
+                tieneIncapacidad = true;
+            }
+        });
+    
+        return tieneIncapacidad;
+    }
+    
+    
+
     function cargarFormularioNovedad(tipoNovedad, novedad = null, index = null) {
         var loadingModalNovedad = document.getElementById("loadingModalFormNovedad");
     
@@ -152,10 +199,23 @@ $(document).ready(function() {
                     $('#novedadModal').data('edit-index', index);
                     cargarValoresFormulario(novedad);
                 }
-    
+                
+                $('#tipoNovedadSelect').on('change', function() {  // Cambia el selector a #tipoNovedadSelect
+                    var tipoNovedad = $(this).val();  // Captura el valor actual de tipoNovedad
+                    var personaId = $('#id_persona').val(); // Captura el ID de la persona seleccionada
+            
+                    // Solo busca la fecha de ingreso si el tipo de novedad es 'opcion8' y personaId está definido
+                    if (tipoNovedad === 'opcion8' && personaId) {
+                        buscarFechaIngreso(personaId);
+                    } else {
+                        console.log('La búsqueda de la fecha de ingreso solo se realiza cuando tipoNovedad es "opcion8".');
+                    }
+                });
+
                 $('#id_Persona').change(function() {
                     var personaId = $(this).val().split(' - ')[0];
-                    if (personaId) {
+                    var tipoNovedad = $('#tipoNovedadSelect').val();  // Revisa el tipo de novedad seleccionado
+                    if (tipoNovedad === 'opcion8' && personaId) {
                         buscarFechaIngreso(personaId);
                     }
                 });
@@ -194,20 +254,31 @@ $(document).ready(function() {
                     calcularDias();
                 });
     
+                // Unificar la función de envío del formulario
                 $('#novedadForm').off('submit').on('submit', function(event) {
-                    var novedadExtemporanea = $('#id_novedad_extemporanea').val();
+                    event.preventDefault(); // Prevenir el envío por defecto del formulario
+
+                    var tipoNovedad = $('#tipoNovedadSelect').val();
                     var fechaNovedad = $('#id_fecha').val();
+                    var personaCedula = $('#id_Persona').val().split(' - ')[0]; // Obtener cédula de la persona seleccionada
+
+                    // Verificación de incapacidad antes de agregar
+                    if (verificarIncapacidadAsignada(personaCedula, fechaNovedad)) {
+                        alert('No se puede asignar otra novedad a este empleado');
+                        return; // Salir de la función para evitar que se ejecute el resto del código
+                    }
+
+                    // Validación de novedad extemporánea
+                    var novedadExtemporanea = $('#id_novedad_extemporanea').val();
                     var hoy = new Date();
                     hoy.setHours(0, 0, 0, 0); // Asegurar que se compara solo la fecha sin la hora
-                
+
                     if (novedadExtemporanea === 'opcion1' && (!fechaNovedad || new Date(fechaNovedad) >= hoy)) {
-                        event.preventDefault();
                         alert('Por favor, ingrese una fecha válida anterior a la fecha actual.');
                     } else {
-                        guardarNovedad();
+                        guardarNovedad(); // Llama a la función para guardar la novedad si la validación es exitosa
                     }
                 });
-                
             },
             error: function(error) {
                 // Ocultar el modal de cargando en caso de error
@@ -243,7 +314,7 @@ $(document).ready(function() {
     function calcularHoras() {
         var horaInicio = $('#id_hora_inicio').val();
         var horaFin = $('#id_hora_fin').val();
-
+    
         if (horaInicio && horaFin) {
             $.ajax({
                 url: '/calcular_cantidad_horas/',
@@ -422,11 +493,13 @@ $(document).ready(function() {
     
     $('#guardarBtn').click(function() {
         var registros = JSON.parse(localStorage.getItem('registros')) || [];
+        console.log('Justificación actual en sessionStorage:', sessionStorage.getItem('justificacion'));
         sendLogUpdateRequest(correo, registros);
     });
-    
-
     function sendLogUpdateRequest(correo, registros) {
+        // Obtener justificación de sessionStorage si existe
+        var justificacion = sessionStorage.getItem('justificacion') || '';
+    
         fetch(`https://app-conexionerp-prod-001.azurewebsites.net/logs/consultar/?correo=${encodeURIComponent(correo)}`, {
             method: 'GET',
             headers: {
@@ -440,19 +513,32 @@ $(document).ready(function() {
             return response.json();
         })
         .then(data => {
-            // Verificar si ya existe justificación almacenada
-            var justificacion = $('#justificacion-textarea').val() || sessionStorage.getItem('justificacion') || '';
+            var requiresJustification = false;
+            var currentTime = new Date();
+            var currentHour = currentTime.getHours();
     
-            if (data.requires_justification && !justificacion) {
-                // Si se requiere justificación y no hay una almacenada, abrir el modal
+            // Comprobar las fechas de los registros para determinar si se requiere justificación
+            registros.forEach(function(registro) {
+                var registroFecha = new Date(registro.fecha);
+                var logTodayDate = new Date(data.log_today);
+                var logYesterdayDate = new Date(data.log_yesterday);
+    
+                if ((registroFecha.toDateString() !== logTodayDate.toDateString()) && (registroFecha.toDateString() !== logYesterdayDate.toDateString())) {
+                    requiresJustification = true;
+                }
+            });
+    
+            if (requiresJustification && !justificacion) {
+                // Mostrar el modal de justificación si es necesario y no se ha proporcionado previamente
                 $('#justificacionModal').modal('show');
                 $('#guardarJustificacionBtn').off('click').on('click', function() {
                     justificacion = $('#justificacion-textarea').val();
                     if (justificacion) {
+                        // Guardar justificación en sessionStorage
                         sessionStorage.setItem('justificacion', justificacion);
                         $('#justificacionModal').modal('hide');
-                        // Llamar la función después de cerrar el modal
-                        enviarDatosASharePoint(registros, correo); 
+                        // Proceder a enviar datos a SharePoint
+                        enviarDatosASharePoint(registros, correo);
                     } else {
                         alert('Por favor, ingrese una justificación.');
                     }
@@ -463,9 +549,10 @@ $(document).ready(function() {
             }
         })
         .catch(err => {
-            console.error('Error updating log:', err);
+            console.error('Error al actualizar el log:', err);
         });
     }
+    
     
     
     
@@ -495,9 +582,12 @@ $(document).ready(function() {
                 Fecha_ingreso_Odoo: formatDate(novedad.fecha_ingreso),
                 Reemplaza: novedad.reemplaza || '',
                 Hora_llegada: novedad.hora_llegada || '',
+                Hora_Salida: novedad.hora_salida || '',
                 Fecha_inicio: formatDate(novedad.fecha_inicio),
                 Fecha_fin: formatDate(novedad.fecha_fin),
                 Colaborador: novedad.colaborador || '',
+                Colaborador_2: novedad.colaborador2 || '',
+                Conductor: novedad.conductor || '',
                 Zona_reemplaza: novedad.zona_reemplaza || '',
                 Motivo: novedad.motivo || '',
                 Horas_extra: novedad.horasextra || '',
@@ -550,7 +640,19 @@ $(document).ready(function() {
                         },
                         buttonsStyling: false  // Necesario para aplicar las clases personalizadas
                     }).then(() => {
-                        window.location.href = "/azure_auth/home/"; // Redirigir a la página principal
+                        // Mostrar modal de redirección antes de cambiar de página
+                        document.getElementById("redirectModal").style.display = "block";
+
+                        // Deshabilitar la interacción con la página
+                        $('body').addClass('no-interaction');
+
+                        // Esperar unos segundos antes de redirigir (opcional)
+                        setTimeout(function() {
+                            
+                            mostrarRedirectModal(); // Mostrar el modal antes de iniciar la solicitud
+                            window.location.href = "/azure_auth/home/"; // Redirigir a la página principal
+                        }, 2000); // Cambia 2000 por la cantidad de milisegundos que quieras esperar
+                    
                     });
                 } else if (response.status === 'partial_success') {
                     console.error('Error parcial al enviar datos a SharePoint', response.details);
@@ -703,6 +805,9 @@ $(document).ready(function() {
             newRow += '<td>' + (novedad.consecutivo || '') + '</td>';
             newRow += '<td>' + (novedad.reemplaza || '') + '</td>';
             newRow += '<td>' + (novedad.colaborador || '') + '</td>';
+            newRow += '<td>' + (novedad.colaborador2 || '') + '</td>';
+            newRow += '<td>' + (novedad.conductor || '') + '</td>';
+            newRow += '<td>' + (novedad.hora_salida || '') + '</td>';
             newRow += '<td>' + (novedad.zona_reemplaza || '') + '</td>';
             newRow += '<td>' + (novedad.horasextra || '') + '</td>';
             newRow += '<td>' + (novedad.hora_inicio || '') + '</td>';

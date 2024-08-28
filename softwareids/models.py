@@ -1,6 +1,7 @@
 from django.db import models
 from django.db import models
 from datetime import timedelta
+from django.contrib.auth.models import User
 
 
 class NovedadBase(models.Model):
@@ -18,7 +19,7 @@ class NovedadBase(models.Model):
             ('opcion7', 'Incapacidad'),
             ('opcion8', 'Ingreso de operarios nuevos'),
             ('opcion9', 'Licencias'),
-            ('opcion10', 'Emepleado hospitalizados'),
+            ('opcion10', 'Empleado hospitalizados'),
             ('opcion11', 'Continúan en vacaciones por incapacidades o calamidades dentro del periodo'),
             ('opcion12', 'Ingresa después de incapacidades largas.'),
             ('opcion13', 'No laboran por procesos disciplinarios'),
@@ -52,6 +53,7 @@ class Usuario(models.Model):
     nombre = models.CharField(max_length=200)
     correo = models.EmailField(unique=True)
     departamento = models.EmailField(unique=True)
+
     def __str__(self):
         return self.nombre
 
@@ -65,14 +67,17 @@ class Campo(models.Model):
             ('opcion2', 'ARL'),
             ('opcion3', 'SOAT'),
         ],
+        default='opcion1'
     )
     tipo_permisos = models.CharField(
         max_length=50,
         choices=[
             ('opcion1', 'Calamidades'),
-            ('opcion2', 'Permisos no remunerados/remunerados'),
-            ('opcion3', 'Día de la familia'),
+            ('opcion2', 'Permisos no remunerados'),
+            ('opcion3', 'Permisos remunerados'),
+            ('opcion4', 'Día de la familia'),
         ],
+        default='opcion1'
     )
     rutas= models.CharField(max_length=200)
     reemplaza = models.CharField(
@@ -81,8 +86,11 @@ class Campo(models.Model):
             ('opcion1', 'Si'),
             ('opcion2', 'No'),
         ],
+        default='opcion2'
     )
     colaborador = models.CharField(max_length=200)
+    colaborador2 = models.CharField(max_length=200,default='')
+    conductor = models.CharField(max_length=200, default='')
     horasextra =  models.CharField(
         max_length=50,
         choices=[
@@ -95,7 +103,8 @@ class Campo(models.Model):
     hora_fin = models.TimeField(null=True, blank=True)
     zona_inicial = models.CharField(max_length=200)
     zona_reemplazo = models.CharField(max_length=200)
-    hora_llegada = models.TimeField()
+    hora_llegada = models.TimeField(null=True, blank=True)
+    hora_salida= models.TimeField(null=True, blank=True)
     fecha_ingreso = models.DateField(default='')
     fecha_inicial= models.DateField(default='')
     fecha_final = models.DateField(default='')
@@ -111,8 +120,8 @@ class Campo(models.Model):
     control= models.CharField(max_length=200)
     consecutivo= models.CharField(max_length=200)
     nuevo_control = models.CharField(max_length=200)
-    fecha_inicio = models.DateField()
-    fecha_fin = models.DateField()
+    fecha_inicio = models.DateField(default='')
+    fecha_fin = models.DateField(default='')
     fecha_terminacion = models.DateField()
     motivo_renuncia= models.CharField(
         max_length=50,

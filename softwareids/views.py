@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 import os
-from .forms import CampoForm, NovedadFormTipo1, NovedadFormTipo2, NovedadFormTipo3, NovedadFormTipo4, NovedadFormTipo10,NovedadFormTipo11, NovedadFormTipo12, NovedadFormTipo13, NovedadFormTipo14,NovedadFormTipo15, NovedadFormTipo16, NovedadFormTipo18, NovedadFormTipo17, NovedadFormTipo19, NovedadFormTipo20, NovedadFormTipo21, NovedadFormTipo22, NovedadFormTipo23,  NovedadFormTipo5, NovedadFormTipo6, NovedadFormTipo7, NovedadFormTipo8, NovedadFormTipo9
+from .forms import CampoForm, NovedadFormTipo1, NovedadFormTipo2, NovedadFormTipo3, NovedadFormTipo4, NovedadFormTipo10,NovedadFormTipo11, NovedadFormTipo12, NovedadFormTipo13, NovedadFormTipo14,NovedadFormTipo15, NovedadFormTipo16, NovedadFormTipo18, NovedadFormTipo17, NovedadFormTipo19, NovedadFormTipo20, NovedadFormTipo21, NovedadFormTipo22,  NovedadFormTipo5, NovedadFormTipo6, NovedadFormTipo7, NovedadFormTipo8, NovedadFormTipo9
 from .utils import  obtener_access_token, sincronizar_con_sharepoint, fetch_personas_from_odoo_usuarios, fetch_zonas_from_odoo, fetch_personas_from_odoo
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -11,26 +11,63 @@ from django.http import Http404, JsonResponse
 from django.utils.safestring import mark_safe
 import requests
 from datetime import datetime, timedelta
-from django.http import HttpResponse
+from .decorators import group_required
 
 
 logger = logging.getLogger(__name__)
+from django.shortcuts import render
 
-#
-@login_required(login_url='/azure_auth/login')
+
+
 def index(request):
-    correo = request.user.email  # Correo obtenido del login de Microsoft
-    request.session['correo'] = correo
-    logger.warning('CORREO INDEX', correo) 
+    # Verificar si el usuario está autenticado
+    if request.user.is_authenticated:
+        # Si el usuario está autenticado, obtener el correo
+        correo = request.user.email
+        request.session['correo'] = correo
+    else:
+        # Si el usuario no está autenticado, no intentar acceder a su correo
+        correo = None
+        # Opcional: podrías redirigir al usuario a la página de login aquí si lo deseas
+
+    # Obtener el mensaje de error si existe
+    error_message = request.session.pop('error_message', None)
+    
     context = {
-            'APP': os.getenv('APP', 'No definido'),
-            # Agrega más variables según sea necesario
-        }
+        'APP': os.getenv('APP', 'No definido'),
+        'error_message': error_message,
+        # Puedes agregar más variables aquí según sea necesario
+    }
+    
+    # Renderiza la plantilla de inicio con el contexto
     return render(request, 'home.html', context)
 
+
+"""def index(request):
+    # El correo se asignará solo si el usuario ya está autenticado
+    correo = request.user.email 
+    request.session['correo'] = correo
+    # Obtener el mensaje de error si existe
+    error_message = request.session.pop('error_message', None)
+    
+    context = {
+        'APP': os.getenv('APP', 'No definido'),
+        'error_message': error_message,
+        # Puedes agregar más variables aquí según sea necesario
+    }
+    
+    # Renderiza la plantilla de inicio con el contexto
+    return render(request, 'home.html', context)"""
+
+
+
 @login_required(login_url='/azure_auth/login')
+@group_required(['GestionTIC', 'Gestión Aseo de la Ciudad'])
+
 def home(request):
+    access_token = request.session.get('access_token')
     correo = request.session.get('correo')
+    
     personas = fetch_personas_from_odoo_usuarios(correo)
     zonas = fetch_zonas_from_odoo()
     # Guardar el correo en la sesión
@@ -52,6 +89,13 @@ def home(request):
         if campo_form.is_valid():
             campo = campo_form.save(commit=False)
             campo.save()
+            
+             # Guardar la justificación en la sesión si está presente en el formulario
+            justificacion = request.POST.get('justificacion', '').strip()
+            if justificacion:
+                request.session['justificacion'] = justificacion  # Guardar la justificación en la sesión
+                logging.info("Justificación guardada en la sesión: %s", justificacion)  
+            
             # Guardar la fecha en la sesión
             return redirect('/azure_auth/novedades/')  
         else:
@@ -62,6 +106,8 @@ def home(request):
     return render(request, 'menuppal.html', { 'campo_form': campo_form, 'personas': personas, 'zonas': zonas, 'correo': correo })
 
 @login_required(login_url='/azure_auth/login')
+@group_required(['GestionTIC', 'Gestión Aseo de la Ciudad'])
+
 def novedad_view(request):
     
     correo = request.session.get('correo')  # Obtener el correo de la sesión 
@@ -69,11 +115,13 @@ def novedad_view(request):
     return render(request, 'form.html', {'tipos_novedad': tipos_novedad,'correo': correo})
 
 @login_required(login_url='/azure_auth/login')
+@group_required(['GestionTIC', 'Gestión Aseo de la Ciudad'])
 def cargar_formulario_novedad(request, tipo_novedad):
     
     # Obtener la fecha y justificación de la sesión
     fecha = request.session.get('fecha', None)
-    justificacion = request.session.get('justificacion', None)
+    justificacion = request.session.get('justificacion')  # Capturar la justificación desde la sesión
+
     correo = request.session.get('correo')  # Obtener el correo de la sesión 
     form_classes = {
         'opcion1': NovedadFormTipo1,
@@ -98,7 +146,6 @@ def cargar_formulario_novedad(request, tipo_novedad):
         'opcion20': NovedadFormTipo20,
         'opcion21': NovedadFormTipo21,
         'opcion22': NovedadFormTipo22,
-        'opcion23': NovedadFormTipo23,
     }
     FormClass = form_classes.get(tipo_novedad)
 
@@ -205,14 +252,11 @@ def enviar_a_sharepoint(request):# Obtener el correo de la sesión
 @csrf_exempt
 def obtener_fecha_ingreso(request):
     persona_id = request.GET.get('persona_id')
-    logger.debug(f'Persona ID recibida: {persona_id}')
     if persona_id:
         personas = fetch_personas_from_odoo()
         for persona in personas:
             if persona[0] == persona_id:
-                logger.debug(f'Fecha de ingreso encontrada: {persona[3]}')
-                return JsonResponse({'fecha_ingreso': persona[3]})  # La fecha de ingreso es el cuarto elemento de la tupla
-    logger.debug('Persona no encontrada')
+                return JsonResponse({'fecha_ingreso': persona[3]})
     return JsonResponse({'error': 'Persona no encontrada'}, status=404)
 
 
@@ -224,10 +268,17 @@ def calcular_cantidad_horas(request):
     hora_fin = request.GET.get('hora_fin')
     if hora_inicio and hora_fin:
         try:
+            # Cambia el formato a '%H:%M' para aceptar horas en formato de 24 horas
             hora_inicio = datetime.strptime(hora_inicio, '%H:%M').time()
             hora_fin = datetime.strptime(hora_fin, '%H:%M').time()
+            
             inicio = timedelta(hours=hora_inicio.hour, minutes=hora_inicio.minute, seconds=hora_inicio.second)
             fin = timedelta(hours=hora_fin.hour, minutes=hora_fin.minute, seconds=hora_fin.second)
+            
+            if fin < inicio:
+                # Si la hora de fin es menor que la de inicio, significa que pasó a la mañana del día siguiente
+                fin += timedelta(days=1)
+            
             cantidad_horas = (fin - inicio).total_seconds() / 3600  # Convertir segundos a horas
             return JsonResponse({'cantidad_horas': cantidad_horas})
         except ValueError:
@@ -266,7 +317,3 @@ def guardar_fecha(request):
             return JsonResponse({'status': 'error', 'message': 'Fecha no proporcionada'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
-
-
-def test_view(request):
-    return HttpResponse("Hello, Azure!")

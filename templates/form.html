@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css">
@@ -118,8 +119,7 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
              <!-- Aquí se agrega el icono de cargando -->
-            
-          
+
           
           
           
@@ -135,7 +135,14 @@
           <div class="modal-content">
               <p>Enviando datos, por favor espere...</p>
           </div>
-        </div>  
+        </div> 
+        <!-- Modal de Redirección -->
+        <div id="redirectModal" class="modal">
+          <div class="modal-content modal-content-redirect">
+            <h4>Redirigiendo...</h4>
+            <p>Por favor, espere mientras lo redirigimos a la página principal.</p>
+          </div>
+        </div> 
           <!-- Modal de Cargando -->
         <div id="loadingModalFormNovedad" class="modal">
           <div class="modal-content2">
@@ -246,6 +253,9 @@
                     <th scope="col">Consecutivo</th>
                     <th scope="col">Reemplaza</th>
                     <th scope="col">Colaborador</th>
+                    <th scope="col">Colaborador 2</th>
+                    <th scope="col">Conductor</th>
+                    <th scope="col">Hora Salida</th>
                     <th scope="col">Zona Reemplazo</th>
                     <th scope="col">Horas Extra</th>
                     <th scope="col">Hora Inicio</th>

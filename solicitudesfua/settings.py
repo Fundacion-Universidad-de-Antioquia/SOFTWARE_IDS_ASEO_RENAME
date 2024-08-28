@@ -21,6 +21,9 @@ load_dotenv()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+ENVIRONMENT = os.getenv('DJANGO_ENV', 'development')
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -35,11 +38,7 @@ USE_I18N = True
 WSGI_APPLICATION = 'solicitudesfua.wsgi.application'
 
 USE_TZ = False
-SESSION_ENGINE = "django.contrib.sessions.backends.db"  # o el backend que estés utilizando
-SESSION_COOKIE_SECURE = True  # Asegúrate de esto si estás en HTTPS
-CSRF_TRUSTED_ORIGINS = [
-    'https://app-softwareids-prod-002-gaegafduh6d5akd5.eastus-01.azurewebsites.net'
-]
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -53,7 +52,11 @@ ALLOWED_HOSTS = [
 # Lista de IDs de grupos permitidos
 ALLOWED_GROUPS = [
     "425ddb39-836e-47d6-98cd-0a4015d1563e",
+    #"0cb15f70-6b37-4c90-8f4a-80c16ab71072",
+    #'Comunicaciones'
+    'GestionTIC'
 ]
+
 # azure ad settings
 AZURE_AUTH = {
     "CLIENT_ID": os.getenv('CLIENT_ID'),
@@ -65,7 +68,7 @@ AZURE_AUTH = {
     "PUBLIC_URLS": ['index'],  # Optional, public views accessible by non-authenticated users
     "PUBLIC_PATHS": ['/',],  # Optional, public paths accessible by non-authenticated users
     "ROLES": {
-        "425ddb39-836e-47d6-98cd-0a4015d1563e": "Gestion Tecnologica e innovacion"
+       # "425ddb39-836e-47d6-98cd-0a4015d1563e": "Gestion Tecnologica e innovacion"
     }  # Optional, will add user to django group if user is in EntraID group
 }
 
@@ -94,8 +97,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "azure_auth.middleware.AzureMiddleware",
+    'azure_auth.middleware.AzureMiddleware',
+    
+
 ]
+
+
+
 
 
 ROOT_URLCONF = 'solicitudesfua.urls'
@@ -169,25 +177,80 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'templates/static/')
 ]
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
+if ENVIRONMENT == 'production':
+    DEBUG = False
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
         },
-    },
-    'loggers': {
-        'django': {
+        'handlers': {
+            'console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple',
+            },
+            'file': {
+                'level': 'WARNING',
+                'class': 'logging.FileHandler',
+                'filename': 'django_warning.log',
+                'formatter': 'verbose',
+            },
+        },
+        'root': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': True,
+            },
+            'django.request': {
+                'handlers': ['file'],
+                'level': 'WARNING',
+                'propagate': False,
+            },
+            'django.security': {
+                'handlers': ['file'],
+                'level': 'WARNING',
+                'propagate': False,
+            },
+        },
+    }
+else:
+    DEBUG = True
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple',
+            },
+        },
+        'root': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True,
         },
-        'azure_auth': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
+    }

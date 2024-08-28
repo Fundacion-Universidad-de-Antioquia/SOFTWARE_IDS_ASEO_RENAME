@@ -314,3 +314,30 @@ body{
 .table-responsive {
   margin-bottom: 2rem; /* Ajusta este valor según sea necesario para lograr el espaciado deseado */
 }
+
+/* Modal de Redirección */
+#redirectModal {
+  display: none; /* Ocultar el modal por defecto */
+  position: fixed; /* Mantener el modal en una posición fija */
+  z-index: 1050; /* Establecer un z-index mayor que otros elementos */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro con transparencia */
+  overflow: hidden; /* Evitar el scroll cuando el modal está activo */
+}
+
+#redirectModal .modal-content-redirect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff; /* Fondo blanco para el contenido del modal */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 400px; /* Limitar el ancho máximo del modal */
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}

@@ -1,8 +1,8 @@
 $(document).ready(function() {
-
     $('#justificacion-textarea').closest('.form-group').hide();
     $('#validarZonaBtn').prop('disabled', true);
 
+    // Función para cargar zonas
     cargarZonas();
 
     function cargarZonas() {
@@ -25,14 +25,21 @@ $(document).ready(function() {
                     }
                 });
 
+                // Validación de formulario al cambiar la selección
                 $select.change(function() {
                     validarFormulario();
                 });
 
+                // Obtener el correo de la tabla
                 const selectedRow = document.querySelector('tbody tr');
                 const correo = selectedRow ? selectedRow.cells[4].innerText : '';
+
+                // Verificar si existe el correo y habilitar/deshabilitar campos
                 if (correo) {
                     sendLogUpdateRequest(correo);
+                } else {
+                    mostrarAlertaCorreoFaltante();
+                    bloquearCampos();
                 }
             },
             error: function() {
@@ -41,6 +48,30 @@ $(document).ready(function() {
         });
     }
 
+    // Función para mostrar una alerta si no hay correo
+    function mostrarAlertaCorreoFaltante() {
+        Swal.fire({
+            title: 'Advertencia',
+            text: 'No se encontró un correo válido para el usuario. Por favor, comuniquese con su jefe inmediato he informe sobre este inconveniente.',
+            icon: 'warning'
+        });
+    }
+
+    // Función para bloquear campos
+    function bloquearCampos() {
+        $('#id_zona').prop('disabled', true);
+        $('#justificacion-textarea').prop('disabled', true);
+        $('#validarZonaBtn').prop('disabled', true);
+    }
+
+    // Función para desbloquear campos cuando se obtiene el correo
+    function desbloquearCampos() {
+        $('#id_zona').prop('disabled', false);
+        $('#justificacion-textarea').prop('disabled', false);
+        validarFormulario();
+    }
+
+    // Validar el formulario basado en la entrada de usuario
     function validarFormulario() {
         const selectedZona = $('#id_zona').val();
         const fecha = $('#id_fecha').val();
@@ -54,6 +85,7 @@ $(document).ready(function() {
         }
     }
 
+    // Validación de zona y otros campos
     function validarZona() {
         const selectedZona = document.getElementById('id_zona').value;
         const selectedRow = document.querySelector('tbody tr');
@@ -95,13 +127,19 @@ $(document).ready(function() {
         }
     }
 
+    // Continuar con la validación
     function continuarValidacion(selectedZona, selectedNombre, selectedDepartamento) {
         const fecha = $('#id_fecha').val();
         const justificacion = $('#justificacion-textarea').val();
         const correo = $('#userEmail').val();  // Obtener el correo desde el input oculto
-
-        
-
+        // Guardar justificación en sessionStorage
+        if (justificacion) {
+            sessionStorage.setItem('justificacion', justificacion);
+        }
+        // Guardar justificación en sessionStorage
+        if (fecha) {
+            sessionStorage.setItem('fecha', fecha);
+        }
         $.ajax({
             url: '/api/guardar_fecha/',
             type: 'POST',
@@ -126,6 +164,7 @@ $(document).ready(function() {
 
     $('#validarZonaBtn').click(validarZona);
 
+    // Solicitud de actualización de log
     function sendLogUpdateRequest(correo) {
         fetch(`https://app-conexionerp-prod-001.azurewebsites.net/logs/consultar/?correo=${encodeURIComponent(correo)}`, {
             method: 'GET',
@@ -141,12 +180,14 @@ $(document).ready(function() {
         })
         .then(data => {
             updateFormDate(data.new_date, data.requires_justification);
+            desbloquearCampos();  // Desbloquear campos una vez se recibe la respuesta y hay correo
         })
         .catch(err => {
             console.error('Error updating log:', err);
         });
     }
 
+    // Actualización de la fecha del formulario
     function updateFormDate(newDate, requiresJustification) {
         const dateField = document.getElementById('id_fecha');
         dateField.value = newDate;

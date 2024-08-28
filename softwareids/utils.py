@@ -6,7 +6,6 @@ from django.http import JsonResponse
 import requests
 import json
 import logging
-from datetime import datetime
 
 load_dotenv()
 database = os.getenv("DATABASE")
@@ -27,7 +26,7 @@ def fetch_personas_from_odoo(departamento=None):
         common = xmlrpc.client.ServerProxy(f'{host}/xmlrpc/2/common')
         uid = common.authenticate(database, user, password, {})
         models = xmlrpc.client.ServerProxy(f'{host}/xmlrpc/2/object')
-        logger.debug(f'Authenticated user ID: {uid}')
+        
         
         personas = models.execute_kw(database, uid, password,
             'hr.employee', 'search_read',
@@ -83,7 +82,6 @@ def obtener_access_token():
     token_response = response.json()
     access_token = token_response.get('access_token')
     if access_token:
-        print("Token de acceso obtenido exitosamente:", access_token)
         return access_token
     print("Error al obtener el token de acceso:", token_response)
     return None  # Esto lanzará un error si la solicitud falla
@@ -146,22 +144,22 @@ logger = logging.getLogger(__name__)
 
 def fetch_personas_from_odoo_usuarios(correo):
     try:
-        print("HOST",host)
+        
         common = xmlrpc.client.ServerProxy(f'{host}/xmlrpc/2/common')
-        print('COMMON',common)
+        
         uid = common.authenticate(database, user, password, {})
         models = xmlrpc.client.ServerProxy(f'{host}/xmlrpc/2/object')
-        logger.debug(f'Authenticated user ID: {uid}')
-        print('CORREO', correo)
+        
+        
         personas = models.execute_kw(database, uid, password,
             'hr.employee', 'search_read',
             [[('work_email', '=', correo)]],
             {'fields': ['identification_id', 'name', 'x_studio_zona_proyecto_aseo','department_id', 'work_email']})
 
-        if personas:
+        """if personas:
             logger.debug(f'Retrieved {len(personas)} personas')
         else:
-            logger.debug('No personas found')
+            logger.debug('No personas found')"""
 
         # Adjusting to extract only the department name
         return [(persona['identification_id'], 
@@ -181,7 +179,7 @@ def fetch_zonas_from_odoo():
         common = xmlrpc.client.ServerProxy(f'{host}/xmlrpc/2/common')
         uid = common.authenticate(database, user, password, {})
         models = xmlrpc.client.ServerProxy(f'{host}/xmlrpc/2/object')
-        logger.debug(f'Authenticated user ID: {uid}')
+        
         
         # Obtener todas las zonas
         zonas = models.execute_kw(database, uid, password,
@@ -189,10 +187,10 @@ def fetch_zonas_from_odoo():
             [[]],  # Filtrar si es necesario
             {'fields': ['x_name']})
 
-        if zonas:
+        """if zonas:
             logger.debug(f'Retrieved {len(zonas)} zonas')
         else:
-            logger.debug('No zonas found')
+            logger.debug('No zonas found')"""
         return [zona['x_name'] for zona in zonas if 'x_name' in zona]
 
     except Exception as e:
@@ -203,7 +201,7 @@ def fetch_rutas_from_odoo():
         common = xmlrpc.client.ServerProxy(f'{host}/xmlrpc/2/common')
         uid = common.authenticate(database, user, password, {})
         models = xmlrpc.client.ServerProxy(f'{host}/xmlrpc/2/object')
-        logger.debug(f'Authenticated user ID: {uid}')
+        
         
         # Obtener todas las zonas
         rutas = models.execute_kw(database, uid, password,
@@ -211,10 +209,10 @@ def fetch_rutas_from_odoo():
             [[]],  # Filtrar si es necesario
             {'fields': ['x_name']})
 
-        if rutas:
+        """if rutas:
             logger.debug(f'Retrieved {len(rutas)} zonas')
         else:
-            logger.debug('No zonas found')
+            logger.debug('No zonas found')"""
         return [ruta['x_name'] for ruta in rutas if 'x_name' in ruta]
 
     except Exception as e:
@@ -235,7 +233,3 @@ def zonas_json_view(request):
     except Exception as e:
         logger.error('Failed to fetch data from Odoo', exc_info=True)
         return JsonResponse({'error': 'Failed to fetch data', 'details': str(e)}, status=500)
-
-
-
-
