@@ -493,7 +493,6 @@ $(document).ready(function() {
     
     $('#guardarBtn').click(function() {
         var registros = JSON.parse(localStorage.getItem('registros')) || [];
-        console.log('Justificación actual en sessionStorage:', sessionStorage.getItem('justificacion'));
         sendLogUpdateRequest(correo, registros);
     });
     function sendLogUpdateRequest(correo, registros) {
